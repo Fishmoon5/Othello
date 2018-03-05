@@ -1,3 +1,8 @@
+/*
+ Othello
+ Team: Yoji_nectar
+ */
+
 #include "player.hpp"
 
 /*
