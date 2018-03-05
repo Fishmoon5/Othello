@@ -20,14 +20,18 @@ Player::Player(Side side) {
      * 30 seconds.
      */
     
-    Board* board = new Board();
+    currBoard = new Board();
+    this->us = side;
+    this->oppo = (side == BLACK) ? WHITE : BLACK;
+    bestMove = new Move(-1, -1);
 }
 
 /*
  * Destructor for the player.
  */
 Player::~Player() {
-	delete board;
+	delete currBoard;
+	delete bestMove;
 }
 
 /*
@@ -44,18 +48,95 @@ Player::~Player() {
  * return nullptr.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-    /*
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */
+    currBoard->doMove(opponentsMove, oppo);
     
-    Move *bestMove = new Move(-1, -1);
-     
-    return nullptr;
+    bestMove->x = -1;
+    bestMove->y = -1;
+    searchDepth = (testingMinimax) ? 2 : 4;
+
+    minimax(currBoard, searchDepth, us);
+    
+    if (bestMove->x == -1 || bestMove->y == -1) {
+		return nullptr;
+	}
+	
+    currBoard->doMove(bestMove, us);   
+    Move* ans = new Move(bestMove->x, bestMove->y);
+    return ans;
 }
 
-int Player::minimax(Board *board, int depth, int player, Move *bestMove) {
+
+int Player::minimax(Board *board, int depth, Side side) {
+	if (depth == 0) {
+		if (testingMinimax) {
+			return (-1) * naiveScore(board, side);
+		}
+		else {
+			return (-1) * betterScore(board, side);
+		}
+	}	
 	
-	int bestScore = 1000 * player;
+	int bestScore = -10000;
+	int score = 0;
+	Move move(-1, -1);
+	Side other = (side == BLACK) ? WHITE : BLACK;
 	
+	for (int i = 0; i < 8; ++i) {
+		for (int j = 0; j < 8; ++j) {
+			move.x = i;
+			move.y = j;
+			if (board->checkMove(&move, side)) {
+				Board *newBoard = board->copy();
+				newBoard->doMove(&move, side);
+				score = minimax(newBoard, depth - 1, other);
+				delete newBoard;
+				if (score > bestScore) {
+					bestScore = score;
+					if (depth == searchDepth) {
+						bestMove->x = i;
+						bestMove->y = j;
+					}
+				}
+			}
+		}
+	}
+	
+	if (bestScore == -10000) {
+		if (testingMinimax) {
+			return (-1) * naiveScore(board, side);
+		}
+		else {
+			return (-1) * betterScore(board, side);
+		}
+	}
+	
+	return (-1) * bestScore;
+}
+
+int Player::naiveScore(Board *board, Side side) {
+	if (side == BLACK) {
+		return board->count(BLACK) - board->count(WHITE);
+	}
+	else {
+		return board->count(WHITE) - board->count(BLACK);
+	}
+}
+
+int Player::betterScore(Board *board, Side side) {
+	int cB = 0;
+	int cW = 0;
+	
+	for (int i = 0; i < 8; i++)	{
+		for (int j = 0; j < 8; j++) {
+			cB += int(board->get(BLACK, i, j)) * score_matrix[i*8 + j];
+			cW += int(board->get(WHITE, i, j)) * score_matrix[i*8 + j];
+		}
+	}
+		
+	if (side == BLACK) {
+		return cB - cW;
+	}
+	else {
+		return cW - cB;
+	}
 }
