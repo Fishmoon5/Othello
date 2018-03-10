@@ -13,7 +13,7 @@ public:
     ~Player();
 
     Move *doMove(Move *opponentsMove, int msLeft);
-    int minimax(Board *board, int depth, Side side);
+    int minimax(Board *board, int depth, Side side, bool isEnd);
     int naiveScore(Board *board, Side side);
     int betterScore(Board *board, Side side);
 
@@ -27,7 +27,7 @@ private:
     Side oppo;
     Move *bestMove;
     
-    int score_matrix[64] = {
+    int scoreMatrix[64] = {
 	 99,  -8,  8,  6,  6,  8,  -8,  99,
 	 -8, -24, -4, -3, -3, -4, -24,  -8,
 	  8,  -4,  7,  4,  4,  7,  -4,   8,

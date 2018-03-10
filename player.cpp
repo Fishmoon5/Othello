@@ -5,6 +5,10 @@
 
 #include "player.hpp"
 
+#define TEST_DEPTH 2
+#define DEPTH 6
+#define INFINITY 10000
+
 /*
  * Constructor for the player; initialize everything here. The side your AI is
  * on (BLACK or WHITE) is passed in as "side". The constructor must finish
@@ -48,13 +52,16 @@ Player::~Player() {
  * return nullptr.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-    currBoard->doMove(opponentsMove, oppo);
+	currBoard->doMove(opponentsMove, oppo);
     
     bestMove->x = -1;
     bestMove->y = -1;
-    searchDepth = (testingMinimax) ? 2 : 6;
+    searchDepth = (testingMinimax) ? TEST_DEPTH : DEPTH;
+    
+    bool isEnd = (currBoard->empty <= DEPTH);
+    std::cerr << currBoard->empty << std::endl;
 
-    minimax(currBoard, searchDepth, us);
+    minimax(currBoard, searchDepth, us, isEnd);
     
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -66,9 +73,9 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 }
 
 
-int Player::minimax(Board *board, int depth, Side side) {
+int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 	if (depth == 0) {
-		if (testingMinimax) {
+		if (testingMinimax || isEnd) {
 			return (-1) * naiveScore(board, side);
 		}
 		else {
@@ -76,7 +83,7 @@ int Player::minimax(Board *board, int depth, Side side) {
 		}
 	}	
 	
-	int bestScore = -10000;
+	int bestScore = -INFINITY;
 	int score = 0;
 	Move move(-1, -1);
 	Side other = (side == BLACK) ? WHITE : BLACK;
@@ -88,7 +95,7 @@ int Player::minimax(Board *board, int depth, Side side) {
 			if (board->checkMove(&move, side)) {
 				Board *newBoard = board->copy();
 				newBoard->doMove(&move, side);
-				score = minimax(newBoard, depth - 1, other);
+				score = minimax(newBoard, depth - 1, other, isEnd);
 				delete newBoard;
 				if (score > bestScore) {
 					bestScore = score;
@@ -101,8 +108,8 @@ int Player::minimax(Board *board, int depth, Side side) {
 		}
 	}
 	
-	if (bestScore == -10000) {
-		score = minimax(board, depth - 1, other);
+	if (bestScore == -INFINITY) {
+		score = minimax(board, depth - 1, other, isEnd);
 		if (score > bestScore) {
 			bestScore = score;	
 		}
@@ -126,8 +133,8 @@ int Player::betterScore(Board *board, Side side) {
 	
 	for (int i = 0; i < 8; i++)	{
 		for (int j = 0; j < 8; j++) {
-			cB += int(board->get(BLACK, i, j)) * score_matrix[i*8 + j];
-			cW += int(board->get(WHITE, i, j)) * score_matrix[i*8 + j];
+			cB += int(board->get(BLACK, i, j)) * scoreMatrix[i*8 + j];
+			cW += int(board->get(WHITE, i, j)) * scoreMatrix[i*8 + j];
 		}
 	}
 		

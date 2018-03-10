@@ -31,6 +31,8 @@ public:
     int countWhite();
 
     void setBoard(char data[]);
+    
+    int empty;
 };
 
 #endif

@@ -10,6 +10,7 @@ Board::Board() {
     taken.set(4 + 8 * 4);
     black.set(4 + 8 * 3);
     black.set(3 + 8 * 4);
+    empty = 60;
 }
 
 /*
@@ -25,6 +26,7 @@ Board *Board::copy() {
     Board *newBoard = new Board();
     newBoard->black = black;
     newBoard->taken = taken;
+    newBoard->empty = empty;
     return newBoard;
 }
 
@@ -139,6 +141,7 @@ void Board::doMove(Move *m, Side side) {
         }
     }
     set(side, X, Y);
+    empty--;
 }
 
 /*
