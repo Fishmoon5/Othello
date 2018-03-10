@@ -55,13 +55,10 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	currBoard->doMove(opponentsMove, oppo);
     
     bestMove->x = -1;
-    bestMove->y = -1;
-    searchDepth = (testingMinimax) ? TEST_DEPTH : DEPTH;
-    
+    bestMove->y = -1;    
     bool isEnd = (currBoard->empty <= DEPTH);
-    std::cerr << currBoard->empty << std::endl;
 
-    minimax(currBoard, searchDepth, us, isEnd);
+    minimax(currBoard, DEPTH, us, isEnd);
     
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -75,7 +72,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 	if (depth == 0) {
-		if (testingMinimax || isEnd) {
+		if (isEnd) {
 			return (-1) * naiveScore(board, side);
 		}
 		else {
@@ -99,7 +96,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 				delete newBoard;
 				if (score > bestScore) {
 					bestScore = score;
-					if (depth == searchDepth) {
+					if (depth == DEPTH) {
 						bestMove->x = i;
 						bestMove->y = j;
 					}
