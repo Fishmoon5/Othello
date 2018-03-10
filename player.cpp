@@ -52,7 +52,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     
     bestMove->x = -1;
     bestMove->y = -1;
-    searchDepth = (testingMinimax) ? 2 : 4;
+    searchDepth = (testingMinimax) ? 2 : 6;
 
     minimax(currBoard, searchDepth, us);
     
@@ -102,11 +102,9 @@ int Player::minimax(Board *board, int depth, Side side) {
 	}
 	
 	if (bestScore == -10000) {
-		if (testingMinimax) {
-			return (-1) * naiveScore(board, side);
-		}
-		else {
-			return (-1) * betterScore(board, side);
+		score = minimax(board, depth - 1, other);
+		if (score > bestScore) {
+			bestScore = score;	
 		}
 	}
 	
