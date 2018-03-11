@@ -69,6 +69,20 @@ bool Board::hasMoves(Side side) {
     return false;
 }
 
+/* 
+ * Returns the number of legal moves for the given side.
+ */
+int Board::numMoves(Side side) {
+	int num = 0;
+	for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Move move(i, j);
+            if (checkMove(&move, side)) num++;
+        }
+    }
+    return num;
+}
+
 /*
  * Returns true if a move is legal for the given side; false otherwise.
  */
