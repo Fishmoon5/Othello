@@ -76,7 +76,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 			return (-1) * naiveScore(board, side);
 		}
 		else {
-			return (-1) * betterScore(board, side);
+			return (-1) * dynamicScore(board, side);
 		}
 	}	
 	
@@ -140,5 +140,127 @@ int Player::betterScore(Board *board, Side side) {
 	}
 	else {
 		return cW - cB;
+	}
+}
+
+int Player::dynamicScore(Board *board, Side side) {
+	int bPiece = 0, wPiece = 0, bFront = 0, wFront = 0; 
+	int bCorner = 0, wCorner = 0, bClose = 0, wClose = 0, bMob, wMob;
+	int i, j, k, x, y;
+	double raw = 0, piece, front, corner, close, mob, score;
+	
+	int dx[] = {-1, -1, 0, 1, 1, 1, 0, -1};
+	int dy[] = {0, 1, 1, 1, 0, -1, -1, -1};
+	
+	// pieces and frontier disks
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (board->occupied(i, j)) {
+				if (board->get(BLACK, i, j)) {
+					raw += scoreMatrix2[i*8 + j];
+					bPiece++;
+				} else {
+					raw -= scoreMatrix2[i*8 + j];
+					wPiece++;
+				}
+				
+				for (k = 0; k < 8; k++) {
+					x = i + dx[k];
+					y = j + dy[k];
+					if (board->onBoard(x, y) && !board->occupied(x, y)) {
+						if (board->get(BLACK, i, j)) {
+							bFront++;
+						} else {
+							wFront++;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	if (bPiece > wPiece) {
+		piece = (100.0 * bPiece) / (bPiece + wPiece);
+	}
+	else if (bPiece < wPiece) {
+		piece = -(100.0 * wPiece) / (bPiece + wPiece);
+	}
+	else piece = 0;
+	
+	if (bFront > wFront)
+		front = -(100.0 * bFront)/(bFront + wFront);
+	else if(bFront < wFront)
+		front = (100.0 * wFront)/(bFront + wFront);
+	else front = 0;
+	
+	// corners
+	if(board->get(BLACK, 0, 0)) bCorner++;
+	else if(board->get(WHITE, 0, 0)) wCorner++;
+	if(board->get(BLACK, 0, 7)) bCorner++;
+	else if(board->get(WHITE, 0, 7)) wCorner++;
+	if(board->get(BLACK, 7, 0)) bCorner++;
+	else if(board->get(WHITE, 7, 0)) wCorner++;
+	if(board->get(BLACK, 7, 7)) bCorner++;
+	else if(board->get(WHITE, 7, 7)) wCorner++;
+	
+	corner = 25 * (bCorner - wCorner);
+	
+	// squares close to corners
+	if(!board->occupied(0, 0))   {
+		if(board->get(BLACK, 0, 1)) bClose++;
+		else if(board->get(WHITE, 0, 1)) wClose++;
+		if(board->get(BLACK, 1, 1)) bClose++;
+		else if(board->get(WHITE, 1, 1)) wClose++;
+		if(board->get(BLACK, 1, 0)) bClose++;
+		else if(board->get(WHITE, 1, 0)) wClose++;
+	}
+	if(!board->occupied(0, 7))   {
+		if(board->get(BLACK, 0, 6)) bClose++;
+		else if(board->get(WHITE, 0, 6)) wClose++;
+		if(board->get(BLACK, 1, 6)) bClose++;
+		else if(board->get(WHITE, 1, 6)) wClose++;
+		if(board->get(BLACK, 1, 7)) bClose++;
+		else if(board->get(WHITE, 1, 7)) wClose++;
+	}
+	if(!board->occupied(7, 0))   {
+		if(board->get(BLACK, 7, 1)) bClose++;
+		else if(board->get(WHITE, 7, 1)) wClose++;
+		if(board->get(BLACK, 6, 1)) bClose++;
+		else if(board->get(WHITE, 6, 1)) wClose++;
+		if(board->get(BLACK, 6, 0)) bClose++;
+		else if(board->get(WHITE, 6, 0)) wClose++;
+	}
+	if(!board->occupied(7, 7))   {
+		if(board->get(BLACK, 7, 6)) bClose++;
+		else if(board->get(WHITE, 7, 6)) wClose++;
+		if(board->get(BLACK, 6, 6)) bClose++;
+		else if(board->get(WHITE, 6, 6)) wClose++;
+		if(board->get(BLACK, 6, 7)) bClose++;
+		else if(board->get(WHITE, 6, 7)) wClose++;
+	}
+	
+	close = -12.5 * (bClose - wClose);
+	
+	// mobility
+	bMob = board->numMoves(BLACK);
+	wMob = board->numMoves(WHITE);
+	if (bMob > wMob) {
+		mob = (100.0 * bMob) / (bMob + wMob);
+	}
+	else if (bMob < wMob) {
+		mob = -(100.0 * wMob) / (bMob + wMob);
+	}
+	else {
+		mob = 0;
+	}
+	
+	score = (10 * raw) + (10 * piece) + (74.396 * front) 
+			+ (801.724 * corner) + (382.026 * close) + (78.922 * mob);
+	if (side == BLACK) {
+		return score;
+	}
+	else {
+		return -score;
 	}
 }
