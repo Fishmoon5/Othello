@@ -6,8 +6,8 @@
 #include "player.hpp"
 
 #define TEST_DEPTH 2
-#define DEPTH 9
-#define INFINITY 1000000
+#define DEPTH 3
+#define INF 1000000
 #define ENDING 2000001
 
 /*
@@ -28,6 +28,13 @@ Player::Player(Side side) {
     this->oppo = (side == BLACK) ? WHITE : BLACK;
     bestMove = new Move(-1, -1);
     bestNext = new Move(-1, -1);
+    
+    timeFracEven = 0;
+    timeFracOdd = 0;
+    for (int i = 0; i < 30; i++) {
+		timeFracEven += allocation[2*i];
+		timeFracOdd += allocation[2*i + 1];
+	}
 }
 
 /*
@@ -54,16 +61,37 @@ Player::~Player() {
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	currBoard->doMove(opponentsMove, oppo);
+	double timeAlloc;
+	if (opponentsMove != nullptr) {
+		if (currBoard->empty % 2 == 1) {
+			timeFracEven -= allocation[60 - currBoard->empty - 1];
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeFracOdd -= allocation[60 - currBoard->empty];
+		} else {
+			timeFracOdd -= allocation[60 - currBoard->empty - 1];
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeFracEven -= allocation[60 - currBoard->empty];
+		}
+	} else {
+		if (currBoard->empty % 2 == 1) {
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeFracOdd -= allocation[60 - currBoard->empty];
+		} else {
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeFracEven -= allocation[60 - currBoard->empty];
+		}
+	}
     
     bestMove->x = -1;
     bestMove->y = -1;    
 
 //    bool isEnd = (currBoard->empty <= DEPTH);
 //    minimax(currBoard, DEPTH, us, isEnd);
-//    int alpha = -INFINITY;
-//    int beta = INFINITY;
+//    int alpha = -INF;
+//    int beta = INF;
 //    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
-    IDsearch();
+	std::cerr << "timeAlloc:" << timeAlloc << std::endl;
+    IDsearch(timeAlloc);
 
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -85,7 +113,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 		}
 	}	
 	
-	int bestScore = -INFINITY;
+	int bestScore = -INF;
 	int score = 0;
 	Move move(-1, -1);
 	Side other = (side == BLACK) ? WHITE : BLACK;
@@ -110,7 +138,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 		}
 	}
 	
-	if (bestScore == -INFINITY) {
+	if (bestScore == -INF) {
 		score = minimax(board, depth - 1, other, isEnd);
 		if (score > bestScore) {
 			bestScore = score;	
@@ -121,7 +149,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 }
 
 int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd) {
-    if (difftime(time(NULL), begin) >= expectedTime)
+    if ((difftime(time(NULL), begin) * 1000) >= expectedTime)
         return ENDING;
     
     if (depth == 0) {
@@ -183,14 +211,22 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
     return (-1) * alpha;
 }
 
-void Player::IDsearch() {
+void Player::IDsearch(double timeAlloc) {
     time(&begin);
+    time_t timeRemaining;
+    bestMove->x = -1;
+    bestMove->y = -1;
+    bestNext->x = -1;
+    bestNext->y = -1;
+
     searchDepth = DEPTH;
-    while(searchDepth <= 20) {
-        expectedTime = 8.0;
-        bool isEnd = (currBoard->empty <= searchDepth);
-        int alpha = -INFINITY;
-        int beta = INFINITY;
+    bool isEnd = false;
+    expectedTime = timeAlloc;
+
+    while(!isEnd) {
+        isEnd = (currBoard->empty <= searchDepth);
+        int alpha = -INF;
+        int beta = INF;
 
         int re = absearch(currBoard, searchDepth, alpha, beta, us, isEnd);
 
