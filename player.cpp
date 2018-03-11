@@ -65,19 +65,19 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	if (opponentsMove != nullptr) {
 		if (currBoard->empty % 2 == 1) {
 			timeFracEven -= allocation[60 - currBoard->empty - 1];
-			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * msLeft;
 			timeFracOdd -= allocation[60 - currBoard->empty];
 		} else {
 			timeFracOdd -= allocation[60 - currBoard->empty - 1];
-			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * msLeft;
 			timeFracEven -= allocation[60 - currBoard->empty];
 		}
 	} else {
 		if (currBoard->empty % 2 == 1) {
-			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * msLeft;
 			timeFracOdd -= allocation[60 - currBoard->empty];
 		} else {
-			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * msLeft;
 			timeFracEven -= allocation[60 - currBoard->empty];
 		}
 	}
@@ -282,7 +282,7 @@ void Player::IDsearch(double timeAlloc) {
 
     bool isEnd = false;
     int d = currBoard->empty;
-    expectedTime = timeAlloc;
+    expectedTime = timeAlloc * 0.99;
 
     while(!isEnd) {
         isEnd = (d <= searchDepth);
