@@ -14,11 +14,11 @@ public:
 
     Move *doMove(Move *opponentsMove, int msLeft);
     int minimax(Board *board, int depth, Side side, bool isEnd);
+    int absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd);
     int naiveScore(Board *board, Side side);
     int betterScore(Board *board, Side side);
 
     // Flag to tell if the player is running within the test_minimax context
-    bool testingMinimax;
     Board *currBoard;
 
 private:

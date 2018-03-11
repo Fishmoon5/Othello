@@ -6,7 +6,7 @@
 #include "player.hpp"
 
 #define TEST_DEPTH 2
-#define DEPTH 6
+#define DEPTH 8
 #define INFINITY 10000
 
 /*
@@ -15,9 +15,6 @@
  * within 30 seconds.
  */
 Player::Player(Side side) {
-    // Will be set to true in test_minimax.cpp.
-    testingMinimax = false;
-
     /*
      * TODO: Do any initialization you need to do here (setting up the board,
      * precalculating things, etc.) However, remember that you will only have
@@ -58,8 +55,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     bestMove->y = -1;    
     bool isEnd = (currBoard->empty <= DEPTH);
 
-    minimax(currBoard, DEPTH, us, isEnd);
-    
+//    minimax(currBoard, DEPTH, us, isEnd);
+    int alpha = -INFINITY;
+    int beta = INFINITY;
+    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
+
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
 	}
@@ -113,6 +113,58 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 	}
 	
 	return (-1) * bestScore;
+}
+
+int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd) {
+    if (depth == 0) {
+        if (isEnd) {
+            return (-1) * naiveScore(board, side);
+        }
+        else {
+            return (-1) * betterScore(board, side);
+        }
+    }   
+    
+    int score = 0;
+    Move move(-1, -1);
+    Side other = (side == BLACK) ? WHITE : BLACK;
+    
+    bool moved = false;
+    for (int j = 0; j < 8; ++j) {
+        for (int i = 0; i < 8; ++i) {
+            move.x = i;
+            move.y = j;
+            if (board->checkMove(&move, side)) {
+                Board *newBoard = board->copy();
+                newBoard->doMove(&move, side);
+                score = absearch(newBoard, depth - 1, -beta, -alpha, other, isEnd);
+                moved = true;
+                delete newBoard;
+                if (score > alpha) {
+                    alpha = score;
+                    if (depth == DEPTH) {
+                        bestMove->x = i;
+                        bestMove->y = j;
+                    }
+                }
+                if (alpha >= beta) {
+                    return (-1) * beta;
+                }
+            }
+        }
+    }
+    
+    if (!moved) {
+        score = absearch(board, depth - 1, -beta, -alpha, other, isEnd);
+        if (score > alpha) {
+            alpha = score;  
+        }
+        else if (score >= beta) {
+            return (-1) * beta;
+        }
+    }
+    
+    return (-1) * alpha;
 }
 
 int Player::naiveScore(Board *board, Side side) {

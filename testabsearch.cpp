@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
     char boardData[64] = {
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-        ' ', 'b', ' ', ' ', ' ', ' ', ' ', ' ',
-        'b', 'w', 'b', 'b', 'b', 'b', ' ', ' ',
+        ' ', ' ', ' ', ' ', ' ', ' ', 'b', ' ',
+        ' ', ' ', 'b', 'b', 'b', 'b', 'w', 'b',
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
     // Get player's move and check if it's right.
     Move *move = player->doMove(nullptr, 0);
 
-    if (move != nullptr && move->x == 1 && move->y == 1) {
-        std::cout << "Correct move: (1, 1)" << std::endl;;
+    if (move != nullptr && move->x == 6 && move->y == 1) {
+        std::cout << "Correct move: (6, 1)" << std::endl;;
     } else {
         std::cout << "Wrong move: got ";
         if (move == nullptr) {
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
         } else {
             std::cout << "(" << move->x << ", " << move->y << ")";
         }
-        std::cout << ", expected (1, 1)" << std::endl;
+        std::cout << ", expected (6, 1)" << std::endl;
     }
 
     return 0;
