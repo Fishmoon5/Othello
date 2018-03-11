@@ -28,7 +28,13 @@ Player::Player(Side side) {
     this->oppo = (side == BLACK) ? WHITE : BLACK;
     bestMove = new Move(-1, -1);
     bestNext = new Move(-1, -1);
-    expectedTime = 5.0;
+
+    timeFracEven = 0;
+    timeFracOdd = 0;
+    for (int i = 0; i < 30; i++) {
+		timeFracEven += allocation[2*i];
+		timeFracOdd += allocation[2*i + 1];
+	}
 }
 
 /*
@@ -55,6 +61,26 @@ Player::~Player() {
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	currBoard->doMove(opponentsMove, oppo);
+	double timeAlloc;
+	if (opponentsMove != nullptr) {
+		if (currBoard->empty % 2 == 1) {
+			timeFracEven -= allocation[60 - currBoard->empty - 1];
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeFracOdd -= allocation[60 - currBoard->empty];
+		} else {
+			timeFracOdd -= allocation[60 - currBoard->empty - 1];
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeFracEven -= allocation[60 - currBoard->empty];
+		}
+	} else {
+		if (currBoard->empty % 2 == 1) {
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracOdd * (msLeft - 1000);
+			timeFracOdd -= allocation[60 - currBoard->empty];
+		} else {
+			timeAlloc = allocation[60 - currBoard->empty] / timeFracEven * (msLeft - 1000);
+			timeFracEven -= allocation[60 - currBoard->empty];
+		}
+	}
     
     bestMove->x = -1;
     bestMove->y = -1;    
@@ -64,8 +90,9 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 //    int alpha = -INF;
 //    int beta = INF;
 //    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
-    IDsearch();
 //    adv_absearch(currBoard, TEST_DEPTH, alpha, beta, us, isEnd);
+	std::cerr << "timeAlloc:" << timeAlloc << std::endl;
+    IDsearch(timeAlloc);
 
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -123,7 +150,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 }
 
 int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd) {
-    if (difftime(time(NULL), begin) >= expectedTime)
+    if ((difftime(time(NULL), begin) * 1000) >= expectedTime)
         return ENDING;
     
     if (depth == 0) {
@@ -244,17 +271,21 @@ int Player::adv_absearch(Board *board, int depth, int alpha, int beta, Side side
     return (-1) * alpha;
 }
 
-void Player::IDsearch() {
+void Player::IDsearch(double timeAlloc) {
     time(&begin);
-    searchDepth = DEPTH;
+    time_t timeRemaining;
     bestMove->x = -1;
     bestMove->y = -1;
     bestNext->x = -1;
     bestNext->y = -1;
+    searchDepth = DEPTH;
 
-    while(searchDepth <= 20) {
-        expectedTime = 9.0;
-        bool isEnd = (currBoard->empty <= searchDepth);
+    bool isEnd = false;
+    int d = currBoard->empty;
+    expectedTime = timeAlloc;
+
+    while(!isEnd) {
+        isEnd = (d <= searchDepth);
         int alpha = -INF;
         int beta = INF;
 
