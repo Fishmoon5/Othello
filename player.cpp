@@ -6,8 +6,9 @@
 #include "player.hpp"
 
 #define TEST_DEPTH 2
-#define DEPTH 10
+#define DEPTH 9
 #define INFINITY 1000000
+#define ENDING 2000001
 
 /*
  * Constructor for the player; initialize everything here. The side your AI is
@@ -22,9 +23,11 @@ Player::Player(Side side) {
      */
     
     currBoard = new Board();
+    searchDepth = DEPTH;
     this->us = side;
     this->oppo = (side == BLACK) ? WHITE : BLACK;
     bestMove = new Move(-1, -1);
+    bestNext = new Move(-1, -1);
 }
 
 /*
@@ -33,6 +36,7 @@ Player::Player(Side side) {
 Player::~Player() {
 	delete currBoard;
 	delete bestMove;
+    delete bestNext;
 }
 
 /*
@@ -53,12 +57,13 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     
     bestMove->x = -1;
     bestMove->y = -1;    
-    bool isEnd = (currBoard->empty <= DEPTH);
 
+//    bool isEnd = (currBoard->empty <= DEPTH);
 //    minimax(currBoard, DEPTH, us, isEnd);
-    int alpha = -INFINITY;
-    int beta = INFINITY;
-    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
+//    int alpha = -INFINITY;
+//    int beta = INFINITY;
+//    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
+    IDsearch();
 
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -116,6 +121,9 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 }
 
 int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd) {
+    if (difftime(time(NULL), begin) >= expectedTime)
+        return ENDING;
+    
     if (depth == 0) {
         if (isEnd) {
             return (-1) * naiveScore(board, side);
@@ -123,7 +131,7 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
         else {
             return (-1) * dynamicScore(board, side);
         }
-    }   
+    }
     
     int score = 0;
     Move move(-1, -1);
@@ -138,15 +146,20 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
                 Board *newBoard = board->copy();
                 newBoard->doMove(&move, side);
                 score = absearch(newBoard, depth - 1, -beta, -alpha, other, isEnd);
-                moved = true;
                 delete newBoard;
+
+                if (score == ENDING)
+                    return ENDING;
+
+                moved = true;
                 if (score > alpha) {
                     alpha = score;
-                    if (depth == DEPTH) {
-                        bestMove->x = i;
-                        bestMove->y = j;
+                    if (depth == searchDepth) {
+                        bestNext->x = i;
+                        bestNext->y = j;
                     }
                 }
+
                 if (alpha >= beta) {
                     return (-1) * beta;
                 }
@@ -156,6 +169,9 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
     
     if (!moved) {
         score = absearch(board, depth - 1, -beta, -alpha, other, isEnd);
+        if (score == ENDING)
+            return ENDING;
+
         if (score > alpha) {
             alpha = score;  
         }
@@ -165,6 +181,28 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
     }
     
     return (-1) * alpha;
+}
+
+void Player::IDsearch() {
+    time(&begin);
+    searchDepth = DEPTH;
+    while(searchDepth <= 20) {
+        expectedTime = 8.0;
+        bool isEnd = (currBoard->empty <= searchDepth);
+        int alpha = -INFINITY;
+        int beta = INFINITY;
+
+        int re = absearch(currBoard, searchDepth, alpha, beta, us, isEnd);
+
+        if (re == ENDING) {
+            std::cerr << searchDepth << std::endl;
+            break;
+        }
+        bestMove->x = bestNext->x;
+        bestMove->y = bestNext->y;
+        searchDepth++;
+    }
+
 }
 
 int Player::naiveScore(Board *board, Side side) {

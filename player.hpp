@@ -2,6 +2,7 @@
 #define __PLAYER_H__
 
 #include <iostream>
+#include <time.h>
 #include "common.hpp"
 #include "board.hpp"
 using namespace std;
@@ -15,6 +16,7 @@ public:
     Move *doMove(Move *opponentsMove, int msLeft);
     int minimax(Board *board, int depth, Side side, bool isEnd);
     int absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd);
+    void IDsearch();
     int naiveScore(Board *board, Side side);
     int betterScore(Board *board, Side side);
 	int dynamicScore(Board *board, Side side);
@@ -27,6 +29,9 @@ private:
     Side us;
     Side oppo;
     Move *bestMove;
+    Move *bestNext;
+    time_t begin;
+    double expectedTime;
     
     int scoreMatrix[64] = {
 	 99,  -8,  8,  6,  6,  8,  -8,  99,
