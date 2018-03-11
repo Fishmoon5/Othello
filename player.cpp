@@ -121,7 +121,7 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
             return (-1) * naiveScore(board, side);
         }
         else {
-            return (-1) * betterScore(board, side);
+            return (-1) * dynamicScore(board, side);
         }
     }   
     
