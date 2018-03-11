@@ -17,6 +17,9 @@ testminimax: $(OBJS) testminimax.o
 testabsearch: $(OBJS) testabsearch.o
 	$(CC) -o $@ $^
 
+testtwosteps: $(OBJS) testtwosteps.o
+	$(CC) -o $@ $^
+
 %.o: %.cpp
 	$(CC) -c $(CFLAGS) -x c++ $< -o $@
 

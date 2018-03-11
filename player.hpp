@@ -2,10 +2,22 @@
 #define __PLAYER_H__
 
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <time.h>
 #include "common.hpp"
 #include "board.hpp"
 using namespace std;
+
+struct TwoMoves
+{
+    Move first;
+    int score;
+
+    bool operator<(const TwoMoves& rhs) {
+        return score > rhs.score;
+    }
+};
 
 class Player {
 
@@ -16,7 +28,10 @@ public:
     Move *doMove(Move *opponentsMove, int msLeft);
     int minimax(Board *board, int depth, Side side, bool isEnd);
     int absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd);
+    void twosteps(Board *board, Side side, bool isEnd);
+    int adv_absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd);
     void IDsearch();
+
     int naiveScore(Board *board, Side side);
     int betterScore(Board *board, Side side);
 	int dynamicScore(Board *board, Side side);
@@ -25,6 +40,8 @@ public:
     Board *currBoard;
 
 private:
+    std::vector<TwoMoves> init;
+
 	int searchDepth;
     Side us;
     Side oppo;

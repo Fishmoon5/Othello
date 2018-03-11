@@ -6,8 +6,8 @@
 #include "player.hpp"
 
 #define TEST_DEPTH 2
-#define DEPTH 9
-#define INFINITY 1000000
+#define DEPTH 3
+#define INF 1000000
 #define ENDING 2000001
 
 /*
@@ -28,6 +28,7 @@ Player::Player(Side side) {
     this->oppo = (side == BLACK) ? WHITE : BLACK;
     bestMove = new Move(-1, -1);
     bestNext = new Move(-1, -1);
+    expectedTime = 5.0;
 }
 
 /*
@@ -60,10 +61,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 //    bool isEnd = (currBoard->empty <= DEPTH);
 //    minimax(currBoard, DEPTH, us, isEnd);
-//    int alpha = -INFINITY;
-//    int beta = INFINITY;
+//    int alpha = -INF;
+//    int beta = INF;
 //    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
     IDsearch();
+//    adv_absearch(currBoard, TEST_DEPTH, alpha, beta, us, isEnd);
 
     if (bestMove->x == -1 || bestMove->y == -1) {
 		return nullptr;
@@ -85,7 +87,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 		}
 	}	
 	
-	int bestScore = -INFINITY;
+	int bestScore = -INF;
 	int score = 0;
 	Move move(-1, -1);
 	Side other = (side == BLACK) ? WHITE : BLACK;
@@ -110,7 +112,7 @@ int Player::minimax(Board *board, int depth, Side side, bool isEnd) {
 		}
 	}
 	
-	if (bestScore == -INFINITY) {
+	if (bestScore == -INF) {
 		score = minimax(board, depth - 1, other, isEnd);
 		if (score > bestScore) {
 			bestScore = score;	
@@ -148,16 +150,17 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
                 score = absearch(newBoard, depth - 1, -beta, -alpha, other, isEnd);
                 delete newBoard;
 
+
                 if (score == ENDING)
                     return ENDING;
 
                 moved = true;
                 if (score > alpha) {
                     alpha = score;
-                    if (depth == searchDepth) {
-                        bestNext->x = i;
-                        bestNext->y = j;
-                    }
+//                    if (depth == searchDepth) {
+  //                      bestNext->x = i;
+    //                    bestNext->y = j;
+      //              }
                 }
 
                 if (alpha >= beta) {
@@ -183,16 +186,79 @@ int Player::absearch(Board *board, int depth, int alpha, int beta, Side side, bo
     return (-1) * alpha;
 }
 
+
+void Player::twosteps(Board *board, Side side, bool isEnd) {
+    
+    Move move1(-1, -1);
+    int score = 0;
+    Side other = (side == BLACK) ? WHITE : BLACK;
+
+    for (int x1 = 0; x1 < 8; x1++) {
+        for (int y1 = 0; y1 < 8; y1++) {
+            move1.x = x1;
+            move1.y = y1;
+            if (board->checkMove(&move1, side)) {
+                Board *newBoard1 = board->copy();
+                newBoard1->doMove(&move1, side);
+                score = minimax(newBoard1, 1, other, isEnd);
+
+                TwoMoves t;
+                t.first = move1;
+                t.score = score;
+                init.push_back(t);
+
+                delete newBoard1;
+            }
+        }
+    }
+}
+
+int Player::adv_absearch(Board *board, int depth, int alpha, int beta, Side side, bool isEnd) {
+    init.clear();
+    twosteps(currBoard, us, (currBoard->empty <= 2));
+    sort(init.begin(), init.end());
+    int score = 0;
+    Side other = (side == BLACK) ? WHITE : BLACK;
+
+    for (unsigned int i = 0; i < init.size(); i++) {
+        Move move = init[i].first;
+        
+        Board *newBoard = board->copy();
+        newBoard->doMove(&move, side);
+        score = absearch(newBoard, depth-1, -beta, -alpha, other, isEnd);
+        delete newBoard;
+
+        if (score == ENDING)
+            return ENDING;
+
+        if (score > alpha) {
+            alpha = score;
+            bestNext->x = move.x;
+            bestNext->y = move.y;
+        }
+
+        if (alpha >= beta) {
+            return (-1) * beta;
+        }
+    }
+    return (-1) * alpha;
+}
+
 void Player::IDsearch() {
     time(&begin);
     searchDepth = DEPTH;
-    while(searchDepth <= 20) {
-        expectedTime = 8.0;
-        bool isEnd = (currBoard->empty <= searchDepth);
-        int alpha = -INFINITY;
-        int beta = INFINITY;
+    bestMove->x = -1;
+    bestMove->y = -1;
+    bestNext->x = -1;
+    bestNext->y = -1;
 
-        int re = absearch(currBoard, searchDepth, alpha, beta, us, isEnd);
+    while(searchDepth <= 20) {
+        expectedTime = 9.0;
+        bool isEnd = (currBoard->empty <= searchDepth);
+        int alpha = -INF;
+        int beta = INF;
+
+        int re = adv_absearch(currBoard, searchDepth, alpha, beta, us, isEnd);
 
         if (re == ENDING) {
             std::cerr << searchDepth << std::endl;

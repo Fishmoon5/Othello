@@ -9,6 +9,10 @@ class Move {
    
 public:
     int x, y;
+    Move() {
+        this->x = -1;
+        this->y = -1;
+    }
     Move(int x, int y) {
         this->x = x;
         this->y = y;        
