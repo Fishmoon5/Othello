@@ -91,7 +91,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 //    int beta = INF;
 //    absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
 //    adv_absearch(currBoard, TEST_DEPTH, alpha, beta, us, isEnd);
-	std::cerr << "timeAlloc:" << timeAlloc << std::endl;
+	std::cerr << "timeRemaining: " << msLeft << "timeAlloc: " << timeAlloc << std::endl;
     IDsearch(timeAlloc);
 
     if (bestMove->x == -1 || bestMove->y == -1) {
@@ -273,7 +273,6 @@ int Player::adv_absearch(Board *board, int depth, int alpha, int beta, Side side
 
 void Player::IDsearch(double timeAlloc) {
     time(&begin);
-    time_t timeRemaining;
     bestMove->x = -1;
     bestMove->y = -1;
     bestNext->x = -1;
@@ -282,7 +281,7 @@ void Player::IDsearch(double timeAlloc) {
 
     bool isEnd = false;
     int d = currBoard->empty;
-    expectedTime = timeAlloc * 0.99;
+    expectedTime = timeAlloc * 0.98;
 
     while(!isEnd) {
         isEnd = (d <= searchDepth);
