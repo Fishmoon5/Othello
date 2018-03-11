@@ -6,8 +6,8 @@
 #include "player.hpp"
 
 #define TEST_DEPTH 2
-#define DEPTH 8
-#define INFINITY 10000
+#define DEPTH 10
+#define INFINITY 1000000
 
 /*
  * Constructor for the player; initialize everything here. The side your AI is
