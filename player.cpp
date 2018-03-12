@@ -82,6 +82,29 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 			timeFracEven -= allocation[60 - currBoard->empty];
 		}
 	}
+	
+	if (currBoard->empty == 59) {
+		if (opponentsMove->x == 3) {
+			bestMove->x = 2;
+			bestMove->y = 4;
+			
+		}
+		else if (opponentsMove->x == 2) {
+			bestMove->x = 4;
+			bestMove->y = 2;
+		}
+		else if (opponentsMove->x == 4) {
+			bestMove->x = 5;
+			bestMove->y = 3;
+		}
+		else {
+			bestMove->x = 3;
+			bestMove->y = 5;
+		}
+		currBoard->doMove(bestMove, us);   
+		Move* ans = new Move(bestMove->x, bestMove->y);
+		return ans;
+	}
     
     bestMove->x = -1;
     bestMove->y = -1;    
@@ -92,7 +115,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 //  int beta = INF;
 //  absearch(currBoard, DEPTH, alpha, beta, us, isEnd);
 //  adv_absearch(currBoard, TEST_DEPTH, alpha, beta, us, isEnd);
-//	std::cerr << "timeRemaining: " << msLeft << " timeAlloc: " << timeAlloc << std::endl;
+	std::cerr << "timeRemaining: " << msLeft << " timeAlloc: " << timeAlloc << std::endl;
     
     IDsearch(timeAlloc);
 
@@ -298,7 +321,7 @@ void Player::IDsearch(double timeAlloc) {
         int re = adv_absearch(currBoard, searchDepth, alpha, beta, us, isEnd);
 
         if (re == ENDING) {
-//            std::cerr << searchDepth << std::endl;
+            std::cerr << searchDepth << std::endl;
             break;
         }
         bestMove->x = bestNext->x;
