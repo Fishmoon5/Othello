@@ -397,7 +397,6 @@ int Player::dynamicScore(Board *board, Side side) {
 	}
 	
 	if (bPiece > wPiece) {
-		/*
 		if (wPiece == 0) {
 			if (side == BLACK) {
 				return INF - 1;
@@ -406,11 +405,9 @@ int Player::dynamicScore(Board *board, Side side) {
 				return -INF + 1;
 			}
 		}
-		* */
 		piece = (100.0 * bPiece) / (bPiece + wPiece);
 	}
 	else if (bPiece < wPiece) {
-		/*
 		if (bPiece == 0) {
 			if (side == BLACK) {
 				return -INF + 1;
@@ -419,7 +416,6 @@ int Player::dynamicScore(Board *board, Side side) {
 				return INF - 1;
 			}
 		}
-		* */
 		piece = -(100.0 * wPiece) / (bPiece + wPiece);
 	}
 	else piece = 0;
